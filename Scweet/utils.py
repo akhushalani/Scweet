@@ -231,7 +231,7 @@ def get_last_date_from_csv(path):
     return datetime.datetime.strftime(max(pd.to_datetime(df["Timestamp"])), '%Y-%m-%dT%H:%M:%S.000Z')
 
 
-def log_in(driver, env, timeout=20, wait=4):
+def log_in(driver, env, timeout=20, wait=4, long_wait=10):
     email = get_email(env)  # const.EMAIL
     password = get_password(env)  # const.PASSWORD
     username = get_username(env)  # const.USERNAME
@@ -242,7 +242,7 @@ def log_in(driver, env, timeout=20, wait=4):
     password_xpath = '//input[@autocomplete="current-password"]'
     username_xpath = '//input[@data-testid="ocfEnterTextTextInput"]'
 
-    sleep(random.uniform(wait, wait + 1))
+    sleep(random.uniform(long_wait, long_wait + 1))
 
     # enter email
     email_el = driver.find_element(by=By.XPATH, value=email_xpath)
@@ -320,6 +320,8 @@ def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limi
 def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit=float('inf')):
     """ get the following or followers of a list of users """
 
+    report = 1000
+    last = 0
     # initiate the driver
     driver = init_driver(headless=headless, env=env, firefox=True)
     sleep(wait)
@@ -377,7 +379,10 @@ def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit
                     break
                 if verbose:
                     print(follow_elem)
-            print("Found " + str(len(follows_elem)) + " " + follow)
+
+            if (len(follows_elem) - last) >= report:
+                print("Found " + str(len(follows_elem)) + " " + follow)
+                last = Math.floor(len(follows_elem) / report) * report
             scroll_attempt = 0
             while not is_limit:
                 sleep(random.uniform(wait - 0.5, wait + 0.5))

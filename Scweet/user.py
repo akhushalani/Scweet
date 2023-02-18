@@ -4,7 +4,7 @@ import random
 import json
 
 
-def get_user_information(users, driver=None, headless=True):
+def get_user_information(users, driver=None, headless=True, wait_1=2, wait_2=2):
     """ get user information if the "from_account" argument is specified """
 
     driver = utils.init_driver(headless=headless)
@@ -13,7 +13,7 @@ def get_user_information(users, driver=None, headless=True):
 
     for i, user in enumerate(users):
 
-        log_user_page(user, driver)
+        log_user_page(user, driver, wait_1=wait_1, wait_2=wait_2)
 
         if user is not None:
 
@@ -89,10 +89,10 @@ def get_user_information(users, driver=None, headless=True):
             continue
 
 
-def log_user_page(user, driver, headless=True):
-    sleep(random.uniform(1, 2))
+def log_user_page(user, driver, headless=True, wait_1=2, wait_2=2):
+    sleep(random.uniform(wait_1, wait_1 + 1))
     driver.get('https://twitter.com/' + user)
-    sleep(random.uniform(1, 2))
+    sleep(random.uniform(wait_2, wait_2 + 1))
 
 
 def get_users_followers(users, env, verbose=1, headless=True, wait=2, limit=float('inf'), file_path=None):
