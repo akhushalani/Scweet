@@ -130,6 +130,7 @@ def init_driver(headless=True, proxy=None, show_images=False, option=None, firef
     else:
         options = ChromeOptions()
         driver_path = chromedriver_autoinstaller.install()
+        options.add_argument('--no-sandbox')
 
     if headless is True:
         print("Scraping on headless mode.")
@@ -150,6 +151,7 @@ def init_driver(headless=True, proxy=None, show_images=False, option=None, firef
     if firefox:
         driver = webdriver.Firefox(options=options, executable_path=driver_path)
     else:
+        options.add_argument('--disable-dev-shm-usage')
         driver = webdriver.Chrome(options=options, executable_path=driver_path)
 
     driver.set_page_load_timeout(100)
