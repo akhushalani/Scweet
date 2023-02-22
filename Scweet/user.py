@@ -95,23 +95,25 @@ def log_user_page(user, driver, headless=True, wait_1=2, wait_2=2):
     sleep(random.uniform(wait_2, wait_2 + 1))
 
 
-def get_users_followers(users, env, verbose=1, headless=True, wait=2, limit=float('inf'), file_path=None):
-    followers = utils.get_users_follow(users, headless, env, "followers", verbose, wait=wait, limit=limit)
+def get_users_followers(users, env, verbose=1, headless=True, wait=2, limit=float('inf'), file_path=None, report=1000):
+    followers = utils.get_users_follow(users, headless, env, "followers", verbose, wait=wait, limit=limit, report=report)
+
+    filename = str(users[0]) + '_followers.json' if len(users) == 1 else str(users[0]) + '_' + str(users[-1]) + '_followers.json'
 
     if file_path == None:
-        file_path = 'outputs/' + str(users[0]) + '_' + str(users[-1]) + '_' + 'followers.json'
+        file_path = 'outputs/' + filename
     else:
-        file_path = file_path + str(users[0]) + '_' + str(users[-1]) + '_' + 'followers.json'
+        file_path = file_path + filename
     with open(file_path, 'w') as f:
         json.dump(followers, f)
         print(f"file saved in {file_path}")
     return followers
 
 
-def get_users_following(users, env, verbose=1, headless=True, wait=2, limit=float('inf'), file_path=None):
-    following = utils.get_users_follow(users, headless, env, "following", verbose, wait=wait, limit=limit)
+def get_users_following(users, env, verbose=1, headless=True, wait=2, limit=float('inf'), file_path=None, report=1000):
+    following = utils.get_users_follow(users, headless, env, "following", verbose, wait=wait, limit=limit, report=report)
 
-    filename = str(users[0]) + '_followers.json' if len(users) == 1 else str(users[0]) + '_' + str(users[-1]) + '_followers.json'
+    filename = str(users[0]) + '_following.json' if len(users) == 1 else str(users[0]) + '_' + str(users[-1]) + '_following.json'
 
     if file_path == None:
         file_path = 'outputs/' + filename

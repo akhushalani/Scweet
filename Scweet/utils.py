@@ -2,6 +2,7 @@ from io import StringIO, BytesIO
 import os
 import re
 from time import sleep
+import math
 import random
 import chromedriver_autoinstaller
 import geckodriver_autoinstaller
@@ -233,7 +234,7 @@ def get_last_date_from_csv(path):
     return datetime.datetime.strftime(max(pd.to_datetime(df["Timestamp"])), '%Y-%m-%dT%H:%M:%S.000Z')
 
 
-def log_in(driver, env, timeout=20, wait=4, long_wait=10):
+def log_in(driver, env, timeout=20, wait=1):
     email = get_email(env)  # const.EMAIL
     password = get_password(env)  # const.PASSWORD
     username = get_username(env)  # const.USERNAME
@@ -244,29 +245,34 @@ def log_in(driver, env, timeout=20, wait=4, long_wait=10):
     password_xpath = '//input[@autocomplete="current-password"]'
     username_xpath = '//input[@data-testid="ocfEnterTextTextInput"]'
 
-    sleep(random.uniform(long_wait, long_wait + 1))
-
-    # enter email
-    email_el = driver.find_element(by=By.XPATH, value=email_xpath)
-    sleep(random.uniform(wait, wait + 1))
-    email_el.send_keys(email)
-    sleep(random.uniform(wait, wait + 1))
-    email_el.send_keys(Keys.RETURN)
-    sleep(random.uniform(wait, wait + 1))
-    # in case twitter spotted unusual login activity : enter your username
-    if check_exists_by_xpath(username_xpath, driver):
-        username_el = driver.find_element(by=By.XPATH, value=username_xpath)
-        sleep(random.uniform(wait, wait + 1))
-        username_el.send_keys(username)
-        sleep(random.uniform(wait, wait + 1))
-        username_el.send_keys(Keys.RETURN)
-        sleep(random.uniform(wait, wait + 1))
-    # enter password
-    password_el = driver.find_element(by=By.XPATH, value=password_xpath)
-    password_el.send_keys(password)
-    sleep(random.uniform(wait, wait + 1))
-    password_el.send_keys(Keys.RETURN)
-    sleep(random.uniform(wait, wait + 1))
+    try:
+        # enter email
+        next_el = "email"
+        email_el = WebDriverWait(driver, timeout).until(
+                    EC.presence_of_element_located((By.XPATH, email_xpath))
+                    )
+        email_el.send_keys(email)
+        sleep(random.uniform(wait - 0.5, wait + 0.5))
+        email_el.send_keys(Keys.RETURN)
+        sleep(random.uniform(wait - 0.5, wait + 0.5))
+        next_el = "username"
+        # in case twitter spotted unusual login activity : enter your username
+        if check_exists_by_xpath(username_xpath, driver):
+            username_el = driver.find_element(by=By.XPATH, value=username_xpath)
+            sleep(random.uniform(wait - 0.5, wait + 0.5))
+            username_el.send_keys(username)
+            sleep(random.uniform(wait - 0.5, wait + 0.5))
+            username_el.send_keys(Keys.RETURN)
+            sleep(random.uniform(wait - 0.5, wait + 0.5))
+        # enter password
+        next_el = "password"
+        password_el = driver.find_element(by=By.XPATH, value=password_xpath)
+        password_el.send_keys(password)
+        sleep(random.uniform(wait - 0.5, wait + 0.5))
+        password_el.send_keys(Keys.RETURN)
+        sleep(random.uniform(wait - 0.5, wait + 0.5))
+    except:
+        print("Couldn't find " + next_el)
 
 
 def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position,
@@ -319,10 +325,9 @@ def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limi
     return driver, data, writer, tweet_ids, scrolling, tweet_parsed, scroll, last_position
 
 
-def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit=float('inf')):
+def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, long_wait=10, limit=float('inf'), report=1000):
     """ get the following or followers of a list of users """
 
-    report = 1000
     last = 0
     # initiate the driver
     driver = init_driver(headless=headless, env=env, firefox=True)
@@ -353,7 +358,6 @@ def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit
             sleep(wait)
         print("Crawling " + user + " " + follow)
         driver.get('https://twitter.com/' + user + '/' + follow)
-        sleep(random.uniform(wait - 0.5, wait + 0.5))
         # check if we must keep scrolling
         scrolling = True
         last_position = driver.execute_script("return window.pageYOffset;")
@@ -363,7 +367,12 @@ def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit
         while scrolling and not is_limit:
             # get the card of following or followers
             # this is the primaryColumn attribute that contains both followings and followers
-            primaryColumn = driver.find_element(by=By.XPATH, value='//div[contains(@data-testid,"primaryColumn")]')
+            try:
+                primaryColumn = WebDriverWait(driver, long_wait).until(
+                    EC.presence_of_element_located((By.XPATH, '//div[contains(@data-testid,"primaryColumn")]'))
+                    )
+            except:
+                print("Couldn't find primaryColumn")
             # extract only the Usercell
             page_cards = primaryColumn.find_elements(by=By.XPATH, value='//div[contains(@data-testid,"UserCell")]')
             for card in page_cards:
@@ -384,7 +393,7 @@ def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit
 
             if (len(follows_elem) - last) >= report:
                 print("Found " + str(len(follows_elem)) + " " + follow)
-                last = Math.floor(len(follows_elem) / report) * report
+                last = math.floor(len(follows_elem) / report) * report
             scroll_attempt = 0
             while not is_limit:
                 sleep(random.uniform(wait - 0.5, wait + 0.5))
