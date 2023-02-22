@@ -338,7 +338,7 @@ def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit
         # if the login fails, find the new log in button and log in again.
         if check_exists_by_link_text("Log in", driver):
             print("Login failed. Retry...")
-            login = driver.find_element_by_link_text("Log in")
+            login = driver.find_element_("link text", "Log in")
             sleep(random.uniform(wait - 0.5, wait + 0.5))
             driver.execute_script("arguments[0].click();", login)
             sleep(random.uniform(wait - 0.5, wait + 0.5))
@@ -410,7 +410,7 @@ def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit
 
 def check_exists_by_link_text(text, driver):
     try:
-        driver.find_element_by_link_text(text)
+        driver.find_element("link text", text)
     except NoSuchElementException:
         return False
     return True
